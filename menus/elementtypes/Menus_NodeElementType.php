@@ -2,299 +2,303 @@
 namespace Craft;
 
 /**
-* Menus - Node element type
-*/
+ * Menus - Node element type
+ */
 class Menus_NodeElementType extends BaseElementType
 {
-  /**
-  * Returns the element type name.
-  *
-  * @return string
-  */
-  public function getName()
-  {
-    return Craft::t('Menus');
-  }
-
-  /**
-  * Returns whether this element type has content.
-  *
-  * @return bool
-  */
-  public function hasContent()
-  {
-    return true;
-  }
-
-  /**
-  * Returns whether this element type has titles.
-  *
-  * @return bool
-  */
-  public function hasTitles()
-  {
-    return true;
-  }
-
-
-  /**
-  * @inheritDoc IElementType::hasStatuses()
-  *
-  * @return bool
-  */
-  public function hasStatuses()
-  {
-    return true;
-  }
-
-  /**
-  * Returns this element type's sources.
-  *
-  * @param string|null $context
-  * @return array|false
-  */
-  public function getSources($context = null)
-  {
-    $sources = array();
-
-      foreach (craft()->menus->getAllMenus() as $menu)
-      {
-        $key = 'menu:'.$menu->id;
-
-        $sources[$key] = array(
-        'label'    => $menu->name,
-        'criteria' => array('menuId' => $menu->id),
-        'structureId'  => $menu->structureId,
-        'structureEditable' => true
-        );
-      }
-
-      return $sources;
+    /**
+     * Returns the element type name.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return Craft::t('Menus');
     }
 
     /**
-    * @inheritDoc IElementType::defineSortableAttributes()
-    *
-    * @retrun array
-    */
+     * Returns whether this element type has content.
+     *
+     * @return bool
+     */
+    public function hasContent()
+    {
+        return true;
+    }
+
+    /**
+     * Returns whether this element type has titles.
+     *
+     * @return bool
+     */
+    public function hasTitles()
+    {
+        return true;
+    }
+
+
+    /**
+     * @inheritDoc IElementType::hasStatuses()
+     *
+     * @return bool
+     */
+    public function hasStatuses()
+    {
+        return true;
+    }
+
+    /**
+     * Returns this element type's sources.
+     *
+     * @param string|null $context
+     * @return array|false
+     */
+    public function getSources($context = null)
+    {
+        $sources = array();
+
+        foreach (craft()->menus->getAllMenus() as $menu) {
+            $key = 'menu:' . $menu->id;
+
+            $sources[$key] = array(
+                'label' => $menu->name,
+                'criteria' => array('menuId' => $menu->id),
+                'structureId' => $menu->structureId,
+                'structureEditable' => true
+            );
+        }
+
+        return $sources;
+    }
+
+    /**
+     * @inheritDoc IElementType::defineSortableAttributes()
+     *
+     * @retrun array
+     */
     public function defineSortableAttributes()
     {
-      $attributes = array(
-        'title' => Craft::t('Title')
-      );
+        $attributes = array(
+            'title' => Craft::t('Title')
+        );
 
 
-      return $attributes;
+        return $attributes;
     }
 
     /**
-    * Returns the attributes that can be shown/sorted by in table views.
-    *
-    * @param string|null $source
-    * @return array
-    */
+     * Returns the attributes that can be shown/sorted by in table views.
+     *
+     * @param string|null $source
+     * @return array
+     */
     public function defineTableAttributes($source = null)
     {
-      return array(
-      'title'     => Craft::t('Title'),
-      'link'     => Craft::t('Link'),
-      //'url'     => Craft::t('Url'),
-      );
+        return array(
+            'title' => Craft::t('Title'),
+            'link' => Craft::t('Link'),
+            //'url'     => Craft::t('Url'),
+        );
     }
 
     /**
-    * Returns the table view HTML for a given attribute.
-    *
-    * @param BaseElementModel $element
-    * @param string $attribute
-    * @return string
-    */
+     * Returns the table view HTML for a given attribute.
+     *
+     * @param BaseElementModel $element
+     * @param string $attribute
+     * @return string
+     */
     public function getTableAttributeHtml(BaseElementModel $element, $attribute)
     {
-      switch ($attribute)
-      {
+        switch ($attribute) {
 
-        default:
-        {
-          return parent::getTableAttributeHtml($element, $attribute);
+            default: {
+                return parent::getTableAttributeHtml($element, $attribute);
         }
-      }
+        }
     }
 
     /**
-    * Defines any custom element criteria attributes for this element type.
-    *
-    * @return array
-    */
+     * Defines any custom element criteria attributes for this element type.
+     *
+     * @return array
+     */
     public function defineCriteriaAttributes()
     {
-      return array(
-      'menu'   => AttributeType::Mixed,
-      'menuId' => AttributeType::Mixed,
-      'order'      => array(AttributeType::String, 'default' => 'lft'),
-      );
+        return array(
+            'menu' => AttributeType::Mixed,
+            'menuId' => AttributeType::Mixed,
+            'order' => array(AttributeType::String, 'default' => 'lft'),
+        );
     }
 
     /**
-    * Modifies an element query targeting elements of this type.
-    *
-    * @param DbCommand $query
-    * @param ElementCriteriaModel $criteria
-    * @return mixed
-    */
+     * Modifies an element query targeting elements of this type.
+     *
+     * @param DbCommand $query
+     * @param ElementCriteriaModel $criteria
+     * @return mixed
+     */
     public function modifyElementsQuery(DbCommand $query, ElementCriteriaModel $criteria)
     {
-      $query
-      ->addSelect('nodes.menuId, nodes.linkedEntryId, nodes.customUrl, i18n.uri linkedEntryUrl')
-      ->join('menus_nodes nodes', 'nodes.id = elements.id')
-      ->join('menus menus', 'menus.id = nodes.menuId')
-      ->leftJoin('elements_i18n i18n', 'i18n.elementId = nodes.linkedEntryId')
+        $query
+            ->addSelect('nodes.menuId, nodes.linkedEntryId, nodes.linkedCategoryId, nodes.customUrl, i18nEntry.uri linkedEntryUrl, i18nCategory.uri linkedCategoryUrl')
+            ->join('menus_nodes nodes', 'nodes.id = elements.id')
+            ->join('menus menus', 'menus.id = nodes.menuId')
+            ->leftJoin('elements_i18n i18nEntry', 'i18nEntry.elementId = nodes.linkedEntryId')
+            ->leftJoin('elements_i18n i18nCategory', 'i18nCategory.elementId = nodes.linkedCategoryId')
+            ->leftJoin('structures structures', 'structures.id = menus.structureId')
+            ->leftJoin('structureelements structureelements', array(
+                'and',
+                'structureelements.structureId = structures.id',
+                'structureelements.elementId = nodes.id'
+            ));
 
-      ->leftJoin('structures structures', 'structures.id = menus.structureId')
-      ->leftJoin('structureelements structureelements', array('and', 'structureelements.structureId = structures.id', 'structureelements.elementId = nodes.id'));
 
+        if ($criteria->menuId) {
+            $query->andWhere(DbHelper::parseParam('nodes.menuId', $criteria->menuId, $query->params));
+        }
 
-      if ($criteria->menuId)
-      {
-        $query->andWhere(DbHelper::parseParam('nodes.menuId', $criteria->menuId, $query->params));
-      }
+        if ($criteria->menu) {
+            $query->andWhere(DbHelper::parseParam('menus.handle', $criteria->menu, $query->params));
+        }
 
-      if ($criteria->menu)
-      {
-        $query->andWhere(DbHelper::parseParam('menus.handle', $criteria->menu, $query->params));
-      }
-
-      // if ($criteria->startDate)
-      // {
-      //   $query->andWhere(DbHelper::parseDateParam('entries.startDate', $criteria->startDate, $query->params));
-      // }
-      //
-      // if ($criteria->endDate)
-      // {
-      //   $query->andWhere(DbHelper::parseDateParam('entries.endDate', $criteria->endDate, $query->params));
-      // }
+        // if ($criteria->startDate)
+        // {
+        //   $query->andWhere(DbHelper::parseDateParam('entries.startDate', $criteria->startDate, $query->params));
+        // }
+        //
+        // if ($criteria->endDate)
+        // {
+        //   $query->andWhere(DbHelper::parseDateParam('entries.endDate', $criteria->endDate, $query->params));
+        // }
     }
 
     /**
-    * Populates an element model based on a query result.
-    *
-    * @param array $row
-    * @return array
-    */
+     * Populates an element model based on a query result.
+     *
+     * @param array $row
+     * @return array
+     */
     public function populateElementModel($row)
     {
-      return Menus_NodeModel::populateModel($row);
+        return Menus_NodeModel::populateModel($row);
     }
 
     /**
-    * Returns the HTML for an editor HUD for the given element.
-    *
-    * @param BaseElementModel $element
-    * @return string
-    */
+     * Returns the HTML for an editor HUD for the given element.
+     *
+     * @param BaseElementModel $element
+     * @return string
+     */
     public function getEditorHtml(BaseElementModel $element)
     {
 
-      $linkedElements[] = craft()->entries->getEntryById($element->linkedEntryId);
-      $selectElement = craft()->elements->getElementType('Entry');
+        $linkedEntryElements[] = craft()->entries->getEntryById($element->linkedEntryId);
+        $linkedCategoryElements[] = craft()->categories->getCategoryById($element->linkedCategoryId);
+        $selectEntryElement = craft()->elements->getElementType('Entry');
+        $selectCategoryElement = craft()->elements->getElementType('Category');
 
 
-      // Start/End Dates
-      $html = craft()->templates->render('menus/_editor', array(
-      'element' => $element,
-      'linkedElements' => $linkedElements,
-      'selectElement' => $selectElement
-      ));
+        // Start/End Dates
+        $html = craft()->templates->render('menus/_editor', array(
+            'element' => $element,
+            'linkedEntryElements' => $linkedEntryElements,
+            'linkedCategoryElements' => $linkedCategoryElements,
+            'selectEntryElement' => $selectEntryElement,
+            'selectCategoryElement' => $selectCategoryElement
+        ));
 
-      // Everything else
-      $html .= parent::getEditorHtml($element);
+        // Everything else
+        $html .= parent::getEditorHtml($element);
 
-      return $html;
+        return $html;
     }
 
     /**
-    * @inheritDoc IElementType::saveElement()
-    *
-    * @param BaseElementModel $element
-    * @param array            $params
-    *
-    * @return bool
-    */
+     * @inheritDoc IElementType::saveElement()
+     *
+     * @param BaseElementModel $element
+     * @param array $params
+     *
+     * @return bool
+     */
     public function saveElement(BaseElementModel $element, $params)
     {
-      //var_dump($element);
-      //exit;
+        //var_dump($element);
+        //exit;
 
-      if (isset($params['customUrl']))
-      {
-        $element->customUrl = $params['customUrl'];
-      }
+        if (isset($params['customUrl'])) {
+            $element->customUrl = $params['customUrl'];
+        }
 
-      $linkedEntry  = $params['linkedEntryId'];
+        $linkedEntry = $params['linkedEntryId'];
 
-      if (count($linkedEntry) > 0 ) {
-        $element->linkedEntryId = $linkedEntry[0];
-      }
+        if (count($linkedEntry) > 0) {
+            $element->linkedEntryId = $linkedEntry[0];
+        }
+        $linkedCategory = $params['linkedCategoryId'];
 
-      return craft()->menus_nodes->saveNode($element);
+        if (count($linkedCategory) > 0) {
+            $element->linkedCategoryId = $linkedCategory[0];
+        }
+
+        return craft()->menus_nodes->saveNode($element);
     }
 
     /**
-    * @inheritDoc IElementType::getAvailableActions()
-    *
-    * @param string|null $source
-    *
-    * @return array|null
-    */
+     * @inheritDoc IElementType::getAvailableActions()
+     *
+     * @param string|null $source
+     *
+     * @return array|null
+     */
     public function getAvailableActions($source = null)
     {
-      if (preg_match('/^menu:(\d+)$/', $source, $matches))
-      {
-        $menu = craft()->menus->getMenuById($matches[1]);
-      }
+        if (preg_match('/^menu:(\d+)$/', $source, $matches)) {
+            $menu = craft()->menus->getMenuById($matches[1]);
+        }
 
-      if (empty($menu))
-      {
-        return;
-      }
+        if (empty($menu)) {
+            return;
+        }
 
-      $actions = array();
+        $actions = array();
 
-      // Set Status
-      $actions[] = 'SetStatus';
+        // Set Status
+        $actions[] = 'SetStatus';
 
 
-      // Edit
-      $editAction = craft()->elements->getAction('Edit');
-      $editAction->setParams(array(
-        'label' => Craft::t('Edit node'),
-      ));
-      $actions[] = $editAction;
+        // Edit
+        $editAction = craft()->elements->getAction('Edit');
+        $editAction->setParams(array(
+            'label' => Craft::t('Edit node'),
+        ));
+        $actions[] = $editAction;
 
-      // New Child
-      $structure = craft()->structures->getStructureById($menu->structureId);
+        // New Child
+        $structure = craft()->structures->getStructureById($menu->structureId);
 
-      if ($structure)
-      {
-        $newChildAction = craft()->elements->getAction('NewChild');
-        $newChildAction->setParams(array(
-          'label'       => Craft::t('Create a new child node'),
-          'maxLevels'   => $structure->maxLevels,
-          'newChildUrl' => 'menus/'.$menu->handle.'/new',
-          ));
-          $actions[] = $newChildAction;
+        if ($structure) {
+            $newChildAction = craft()->elements->getAction('NewChild');
+            $newChildAction->setParams(array(
+                'label' => Craft::t('Create a new child node'),
+                'maxLevels' => $structure->maxLevels,
+                'newChildUrl' => 'menus/' . $menu->handle . '/new',
+            ));
+            $actions[] = $newChildAction;
         }
 
         // Delete
         $deleteAction = craft()->elements->getAction('Delete');
         $deleteAction->setParams(array(
-        'confirmationMessage' => Craft::t('Are you sure you want to delete the selected nodes?'),
-        'successMessage'      => Craft::t('Nodes deleted.'),
+            'confirmationMessage' => Craft::t('Are you sure you want to delete the selected nodes?'),
+            'successMessage' => Craft::t('Nodes deleted.'),
         ));
         $actions[] = $deleteAction;
 
         return $actions;
-      }
+    }
 
 
-  }
+}

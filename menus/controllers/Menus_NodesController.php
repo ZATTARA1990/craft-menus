@@ -52,11 +52,13 @@ class Menus_NodesController extends BaseController
 
         if (!$variables['node']->id) {
             $variables['title'] = Craft::t('Create a new node');
-            $variables['linkedElements'] = array();
+            $variables['linkedEntryElements'] = array();
+            $variables['linkedCategoryElements'] = array();
         } else {
             $variables['title'] = $variables['node']->title;
 
-            $variables['linkedElements'][] = craft()->entries->getEntryById($variables['node']->linkedEntryId);
+            $variables['linkedEntryElements'][] = craft()->entries->getEntryById($variables['node']->linkedEntryId);
+            $variables['linkedCategoryElements'][] = craft()->categories->getCategoryById($variables['node']->linkedCategoryId);
         }
 
         if ($variables['menu']->maxLevels != 1) {
@@ -116,7 +118,7 @@ class Menus_NodesController extends BaseController
         // Set the "Continue Editing" URL
         $variables['continueEditingUrl'] = 'menus/' . $variables['menu']->handle . '/{id}';
 
-        $variables['selectElement'] = craft()->elements->getElementType('Entry');
+        $variables['selectEntryElement'] = craft()->elements->getElementType('Entry');
 
         $variables['selectCategoryElement'] = craft()->elements->getElementType('Category');
 
@@ -145,18 +147,27 @@ class Menus_NodesController extends BaseController
 
         // Set the node attributes, defaulting to the existing values for whatever is missing from the post data
         $node->menuId = craft()->request->getPost('menuId', $node->menuId);
-        if (craft()->request->getPost('linkedEntryId')){
-            $linkedEntry = craft()->request->getPost('linkedEntryId');
-        } else {
-            $linkedEntry = craft()->request->getPost('linkedCategoryId');
-        }
+
+        $linkedEntry = craft()->request->getPost('linkedEntryId');
+
+        $linkedCategory = craft()->request->getPost('linkedCategoryId');
+
 
         $node->enabled = (bool)craft()->request->getPost('enabled', $node->enabled);
 
 
         if (is_array($linkedEntry)) {
             $node->linkedEntryId = isset($linkedEntry[0]) ? $linkedEntry[0] : null;
+        } else {
+            $node->linkedEntryId = null;
         }
+
+        if (is_array($linkedCategory)) {
+            $node->linkedCategoryId = isset($linkedCategory[0]) ? $linkedCategory[0] : null;
+        } else {
+            $node->linkedCategoryId = null;
+        }
+
 
         $node->customUrl = craft()->request->getPost('customUrl', $node->customUrl);
         $node->getContent()->title = craft()->request->getPost('title', $node->title);
